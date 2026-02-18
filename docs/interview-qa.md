@@ -5,4 +5,4 @@
 - [Part 1: 行业基础 + 生态](interview-qa-part1.md)
 - [Part 2: 广告系统 + 数据算法](interview-qa-part2.md)
 - [Part 3: 大数据基础设施 + 工程 + 合规 + 玩家](interview-qa-part3.md)
-- [专题: 第三方监测 vs MMP](interview-qa-monitoring.md)
+- [广告监测与归因全解析](interview-qa-monitoring.md)
