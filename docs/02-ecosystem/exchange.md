@@ -8,20 +8,25 @@ Ad Exchange 是连接 DSP 和 SSP 的程序化广告交易市场，通过 RTB (�
 
 ## 交易架构全景
 
-```
-广告主侧                    交易层                     媒体侧
-┌────────┐              ┌──────────┐              ┌────────┐
-│  DSP-1 │──┐           │          │           ┌──│ SSP-1  │
-│  DSP-2 │──┤  Bid Req  │    Ad    │  Ad Req   ├──│ SSP-2  │
-│  DSP-3 │──┼──────────►│ Exchange │◄──────────┼──│ SSP-3  │
-│  DSP-4 │──┤  Bid Resp │          │  Ad Resp  ├──│ SSP-4  │
-│  DSP-5 │──┘           │          │           └──│ SSP-5  │
-└────────┘              └──────────┘              └────────┘
-                              │
-                        ┌─────┴─────┐
-                        │   DMP     │
-                        │ (数据增强) │
-                        └───────────┘
+```mermaid
+flowchart LR
+    subgraph 广告主侧
+        D1[DSP-1]
+        D2[DSP-2]
+        D3[DSP-3]
+        D4[DSP-4]
+        D5[DSP-5]
+    end
+    subgraph 媒体侧
+        S1[SSP-1]
+        S2[SSP-2]
+        S3[SSP-3]
+        S4[SSP-4]
+        S5[SSP-5]
+    end
+    D1 & D2 & D3 & D4 & D5 <-->|Bid Req/Resp| ADX[Ad Exchange]
+    S1 & S2 & S3 & S4 & S5 <-->|Ad Req/Resp| ADX
+    DMP[DMP 数据增强] <-.-> ADX
 ```
 
 ---
@@ -58,25 +63,31 @@ Ad Exchange 是连接 DSP 和 SSP 的程序化广告交易市场，通过 RTB (�
 
 ### 时序图
 
-```
-用户        媒体App/Web      SSP/AdX         DSP-1    DSP-2    DSP-3
- │              │               │              │        │        │
- │──访问页面──►│               │              │        │        │
- │              │──Ad Request──►│              │        │        │
- │              │               │──Bid Req────►│        │        │
- │              │               │──Bid Req───────────►│        │
- │              │               │──Bid Req──────────────────►│
- │              │               │              │        │        │
- │              │               │◄──Bid ¥30────│        │        │
- │              │               │◄──Bid ¥45──────────│        │
- │              │               │◄──No Bid─────────────────│
- │              │               │              │        │        │
- │              │               │  竞价: DSP-2 胜出 (¥45)    │
- │              │               │              │        │        │
- │              │◄──Ad Resp─────│              │        │        │
- │◄──展示广告──│               │              │        │        │
- │              │               │              │        │        │
- │──点击广告──►│──Click Track──►│──Win Notice──────────►│        │
+```mermaid
+sequenceDiagram
+    participant U as 用户
+    participant M as 媒体App/Web
+    participant ADX as SSP/AdX
+    participant D1 as DSP-1
+    participant D2 as DSP-2
+    participant D3 as DSP-3
+
+    U->>M: 访问页面
+    M->>ADX: Ad Request
+    par 并行竞价请求
+        ADX->>D1: Bid Request
+        ADX->>D2: Bid Request
+        ADX->>D3: Bid Request
+    end
+    D1-->>ADX: Bid ¥30
+    D2-->>ADX: Bid ¥45
+    D3-->>ADX: No Bid
+    Note over ADX: 竞价: DSP-2 胜出 (¥45)
+    ADX->>M: Ad Response
+    M->>U: 展示广告
+    U->>M: 点击广告
+    M->>ADX: Click Track
+    ADX->>D2: Win Notice
 ```
 
 ### 详细步骤
@@ -288,10 +299,10 @@ Shading 策略:
 
 ### 海外 (开放生态)
 
-```
-广告主 → 独立DSP → 多个Ad Exchange → 多个SSP → 多个媒体
-                         ↕
-                    独立DMP
+```mermaid
+flowchart LR
+    A[广告主] --> B[独立DSP] --> C[多个Ad Exchange] --> D[多个SSP] --> E[多个媒体]
+    F[独立DMP] <-.-> C
 ```
 
 - 各环节独立，互相竞争
@@ -300,10 +311,11 @@ Shading 策略:
 
 ### 国内 (围墙花园)
 
-```
-广告主 → 巨量引擎 ──────────────────→ 抖音/头条/穿山甲
-广告主 → 腾讯广告 ──────────────────→ 微信/QQ/优量汇
-广告主 → 百度营销 ──────────────────→ 百度搜索/百青藤
+```mermaid
+flowchart LR
+    A1[广告主] --> B1[巨量引擎] --> C1[抖音/头条/穿山甲]
+    A2[广告主] --> B2[腾讯广告] --> C2[微信/QQ/优量汇]
+    A3[广告主] --> B3[百度营销] --> C3[百度搜索/百青藤]
 ```
 
 - 大媒体自建闭环，数据不互通
@@ -312,15 +324,13 @@ Shading 策略:
 
 ### RTA (Real-Time API)
 
-```
-媒体广告系统 ──RTA请求──► 广告主服务器
-                              │
-                         广告主实时决策:
-                         - 是否参竞
-                         - 出价调整
-                         - 人群筛选
-                              │
-媒体广告系统 ◄──RTA响应──┘
+```mermaid
+sequenceDiagram
+    participant M as 媒体广告系统
+    participant A as 广告主服务器
+    M->>A: RTA 请求
+    Note over A: 实时决策:<br/>是否参竞<br/>出价调整<br/>人群筛选
+    A-->>M: RTA 响应
 ```
 
 - 国内特色: 广告主通过 RTA 接口参与媒体的广告决策

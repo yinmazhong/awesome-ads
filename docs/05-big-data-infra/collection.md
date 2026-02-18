@@ -8,20 +8,25 @@
 
 ## 数据采集全景架构
 
-```
-数据源                    采集层                    传输层                存储层
-┌──────────┐          ┌──────────┐          ┌──────────┐        ┌──────────┐
-│ 客户端埋点│─────────►│ 数据接收  │─────────►│  Kafka   │───────►│  HDFS    │
-│ (SDK/Pixel)│         │ 服务      │          │  Pulsar  │        │  S3/OSS  │
-└──────────┘          │ (Nginx/   │          │          │        │  HBase   │
-┌──────────┐          │  Gateway) │          └──────────┘        │  ClickHouse│
-│ 服务端日志│─────────►│          │                               └──────────┘
-│ (Ad Server)│         └──────────┘
-└──────────┘               │
-┌──────────┐               │
-│ 第三方数据│───────────────┘
-│ (MMP/监测)│
-└──────────┘
+```mermaid
+flowchart LR
+    subgraph 数据源
+        A1[客户端埋点<br/>SDK/Pixel]
+        A2[服务端日志<br/>Ad Server]
+        A3[第三方数据<br/>MMP/监测]
+    end
+    subgraph 采集层
+        B[数据接收服务<br/>Nginx/Gateway]
+    end
+    subgraph 传输层
+        C[Kafka / Pulsar]
+    end
+    subgraph 存储层
+        D1[HDFS / S3/OSS]
+        D2[HBase]
+        D3[ClickHouse]
+    end
+    A1 & A2 & A3 --> B --> C --> D1 & D2 & D3
 ```
 
 ---

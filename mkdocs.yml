@@ -40,7 +40,11 @@ theme:
 markdown_extensions:
   - pymdownx.highlight:
       anchor_linenums: true
-  - pymdownx.superfences
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
   - pymdownx.tabbed:
       alternate_style: true
   - pymdownx.details
@@ -105,6 +109,12 @@ nav:
     - 国内平台: 08-players/china.md
   - 前沿趋势:
     - 行业趋势: 09-trends/trends.md
+  - 面试 Q&A:
+    - 总览: interview-qa.md
+    - 行业基础+生态: interview-qa-part1.md
+    - 广告系统+数据算法: interview-qa-part2.md
+    - 基础设施+工程+合规: interview-qa-part3.md
+    - 专题-第三方监测 vs MMP: interview-qa-monitoring.md
   - 学习资源:
     - 经典论文: resources/papers.md
     - 推荐书籍: resources/books.md
