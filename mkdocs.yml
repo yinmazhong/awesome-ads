@@ -1,0 +1,111 @@
+site_name: Awesome Ads 🎯
+site_description: 在线广告行业知识地图 — 大数据开发者视角
+site_url: https://awesome-ads.pages.dev
+
+theme:
+  name: material
+  language: zh
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: amber
+      toggle:
+        icon: material/brightness-7
+        name: 切换到暗色模式
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: amber
+      toggle:
+        icon: material/brightness-4
+        name: 切换到亮色模式
+  font:
+    text: Noto Sans SC
+    code: JetBrains Mono
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - toc.follow
+  icon:
+    repo: fontawesome/brands/github
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.details
+  - pymdownx.mark
+  - pymdownx.critic
+  - pymdownx.keys
+  - admonition
+  - tables
+  - attr_list
+  - md_in_html
+  - toc:
+      permalink: true
+
+plugins:
+  - search:
+      lang:
+        - zh
+        - en
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com
+
+nav:
+  - 首页: index.md
+  - 行业基础:
+    - 发展史: 01-industry-basics/history.md
+    - 商业模式: 01-industry-basics/business-models.md
+    - 核心指标: 01-industry-basics/metrics.md
+  - 广告生态:
+    - 需求方 (广告主侧): 02-ecosystem/demand-side.md
+    - 供给方 (媒体侧): 02-ecosystem/supply-side.md
+    - 交易市场: 02-ecosystem/exchange.md
+  - 广告系统:
+    - 投放引擎: 03-ad-system/serving.md
+    - 定向系统: 03-ad-system/targeting.md
+    - 创意系统: 03-ad-system/creative.md
+    - 计费与反作弊: 03-ad-system/billing-antifraud.md
+  - 数据与算法:
+    - 用户画像: 04-data-algorithm/user-profile.md
+    - CTR/CVR 预估: 04-data-algorithm/ctr-cvr.md
+    - 出价优化: 04-data-algorithm/bidding.md
+    - 推荐广告融合: 04-data-algorithm/rec-ads-blend.md
+    - 搜索广告: 04-data-algorithm/search-ads.md
+  - 大数据基础设施:
+    - 数据采集: 05-big-data-infra/collection.md
+    - 实时计算: 05-big-data-infra/realtime.md
+    - 离线计算: 05-big-data-infra/offline.md
+    - 数据存储: 05-big-data-infra/storage.md
+    - 数据应用: 05-big-data-infra/application.md
+  - 工程实践:
+    - 高性能系统: 06-engineering/high-performance.md
+    - 模型工程: 06-engineering/ml-engineering.md
+    - 稳定性保障: 06-engineering/reliability.md
+  - 合规与隐私:
+    - 隐私法规: 07-compliance/regulations.md
+    - 隐私技术: 07-compliance/privacy-tech.md
+    - 广告审核: 07-compliance/ad-review.md
+  - 主要玩家:
+    - 海外平台: 08-players/overseas.md
+    - 国内平台: 08-players/china.md
+  - 前沿趋势:
+    - 行业趋势: 09-trends/trends.md
+  - 学习资源:
+    - 经典论文: resources/papers.md
+    - 推荐书籍: resources/books.md
+    - 演讲与课程: resources/talks.md
