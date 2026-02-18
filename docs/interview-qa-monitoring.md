@@ -433,6 +433,179 @@ MMP 作为独立裁判，用统一归因逻辑判定归属，**去重**，确保
 
 假设一家中国游戏公司（如米哈游）要在海外推广一款新游戏，选择 **Meta Ads** 和 **Google Ads** 作为主要投放渠道，使用 **AppsFlyer** 作为 MMP。
 
+#### 真实痛点：广告账号封禁与冷启动压力
+
+出海广告主（尤其是游戏/电商）面临一个高频痛点：**Meta/Google 广告账号容易被封**。
+
+常见封号原因：
+- 创意违规（夸大宣传、敏感内容）
+- 账号信任度低（新账号、支付异常）
+- 大规模跑量触发风控
+- 落地页合规问题
+
+封号后果：**账号历史数据（受众、像素事件、优化信号）全部清零**，新账号需要从零开始积累转化数据，算法才能重新学习和优化，这个过程就是**冷启动**。
+
+冷启动期间 CPA 高、ROAS 低，通常需要 50-200 个转化事件后算法才能稳定，这段时间花费大、效果差，是出海广告主最头疼的阶段。
+
+---
+
+#### 使用 AppsFlyer 对冷启动的影响：优劣势分析
+
+**✅ 优势：AppsFlyer 帮助加速冷启动**
+
+| 优势 | 说明 |
+|------|------|
+| **归因数据独立于媒体账号** | AppsFlyer 的 SDK 和归因数据存在广告主侧，账号被封不影响历史归因数据 |
+| **快速切换新账号** | 新 Meta/Google 账号创建后，在 AppsFlyer 后台重新配置 Integration 即可，SDK 不需要改动 |
+| **Postback 持续回传** | 新账号上线后，AppsFlyer 立即开始向新账号回传转化事件，帮助算法快速积累信号 |
+| **历史受众数据可迁移** | AppsFlyer 的 Audiences 功能可将历史用户人群包（付费用户、高价值用户）导出并上传到新账号，跳过冷启动的受众学习阶段 |
+| **跨账号/跨渠道归因不中断** | 即使某个账号被封，其他渠道（Google、TikTok）的归因和数据采集不受影响，整体投放视图完整 |
+| **Protect360 反作弊持续运行** | 不依赖媒体账号，封号期间反作弊保护不中断 |
+
+**⚠️ 劣势：AppsFlyer 无法解决的问题**
+
+| 劣势 | 说明 |
+|------|------|
+| **媒体账号的像素/转化历史无法迁移** | Meta Pixel 的历史事件数据绑定在 Business Manager，新账号的 Pixel 是空的，算法仍需重新学习 |
+| **新账号的账号信任度从零开始** | AppsFlyer 无法提升新账号在 Meta/Google 的信任评分，审核更严、限额更低 |
+| **冷启动期间花费仍然较高** | AppsFlyer 加速的是"有转化数据后"的优化速度，但冷启动初期（前 50 个转化）的高 CPA 无法完全避免 |
+| **iOS ATT 限制依然存在** | 新账号同样面临 IDFA 不可用的问题，SKAdNetwork 的聚合延迟无法绕过 |
+
+**实际操作中的应对策略**：
+
+```
+封号 → 立即行动：
+
+1. 保留 AppsFlyer 历史数据（不受影响）
+2. 用 AppsFlyer Audiences 导出高价值用户人群包
+3. 注册新 Meta BM → 创建新广告账号 → 新 Pixel
+4. 在 AppsFlyer 后台更新 Meta Integration（换新账号 App ID）
+5. 将人群包上传到新账号作为种子受众（Lookalike 基础）
+6. 新账号上线 → AppsFlyer 立即开始回传转化 → 算法加速学习
+7. 目标：48-72 小时内恢复投放，而不是从零等待 1-2 周
+```
+
+#### 重点：上一个被封禁账号积累的“归因/转化数据”如何复用到新账号？
+
+这里要先把“数据”拆成两类，否则很容易误解：
+
+| 数据资产 | 存在哪里 | 封号后是否还在 | 能否直接迁移到新账号 |
+|---------|---------|---------------|----------------------|
+| **A. 媒体账号侧的投放学习（Learning）** | Meta/Google 的广告账号/像素/转化模型 | ❌ 基本清零 | ❌ 不能直接迁移 |
+| **B. 广告主侧的归因与用户资产** | AppsFlyer + 自己的用户库/数据仓库 | ✅ 完整保留 | ✅ 可以复用 |
+
+换句话说：**AppsFlyer 能帮你把“广告主侧的历史数据”复用出来，但无法把“被封账号在媒体侧的学习状态”复制过去。**
+
+---
+
+##### 1) AppsFlyer 侧：复用“用户资产”和“效果知识”
+
+**你能复用的核心资产**：
+
+- **历史归因的 Raw Data**：你可以拿到设备级明细（安装/注册/付费），作为新账号冷启动时的基线（CPI/CPA/ROAS、国家/机型/渠道结构）。
+- **高价值用户人群**：从 AppsFlyer 里按规则圈人（例如 D7 ROAS>1、付费用户、特定国家留存高的用户）。
+
+**怎么复用到新账号**（最常用两条线）：
+
+1. **AppsFlyer Audiences → 导出/同步人群包**
+   - 人群例子：
+     - `Payers_Last_30D`（近30天付费用户）
+     - `High_LTV_US`（美国高 LTV 用户）
+     - `Churned_Payers`（流失付费用户，用于召回）
+   - 用途：
+     - 上传到新广告账号作为 **Custom Audience**
+     - 基于 Custom Audience 做 **Lookalike**，让新账号从“高质量种子”开始找人，减少纯随机探索成本
+
+2. **保持事件口径一致（对新账号最关键）**
+   - 确保 AppsFlyer 里 `af_complete_registration`、`af_purchase` 等事件定义、币种、收入字段保持一致
+   - 确保 Meta/Google 的事件映射（event mapping）在新账号上也按同样口径配置
+   - 这样新账号一上线，媒体收到的 Postback 信号就与旧账号一致，模型能更快收敛
+
+---
+
+##### 2) Meta 侧：能复用什么？不能复用什么？
+
+**不能复用的（现实约束）**：
+
+- **广告账号级学习状态无法迁移**：新广告账号/新广告组仍会进入 Learning Phase。
+- **Pixel 历史与账号绑定**：如果封的是 Business Manager 或像素相关资产，新像素几乎等于从零开始。
+
+**能复用的（实操抓手）**：
+
+- **受众资产可以复用**：把旧账号（或 AppsFlyer）沉淀的高价值用户做成 Custom Audience/Lookalike。
+- **事件信号可以快速恢复**：新账号通过 AppsFlyer Postback 继续收到设备级转化（install/register/purchase/value）。
+
+**让新账号“快进入稳定期”的关键动作**：
+
+- **优先用“价值更强”的事件做优化目标**：从 `install` 快速切到 `registration` / `purchase` / `value`（但要保证量够，否则会 Learning Limited）。
+- **用 S2S 付费事件提高信号质量**：服务端校验后再上报 `af_purchase`，减少假事件对模型的污染。
+- **前 48 小时保证稳定的转化流**：预算不要频繁大幅调整，尽快累计到可学习的样本量。
+
+---
+
+##### 3) Google 侧：复用逻辑（更偏“点击级标识”）
+
+Google 的转化回传里，最关键的是 **`gclid`（点击标识）**：
+
+- 旧账号的 `gclid` 只对应旧账号的点击，无法迁移。
+- 但新账号上线后，AppsFlyer 会继续把新点击产生的 `gclid` 关联到安装/事件，并通过 Google 的转化接口回传。
+- 你能复用的是：
+  - 老账号沉淀出来的地域/素材/关键词结构
+  - 以及 AppsFlyer 的历史数据基线与人群包（用于再营销/相似人群策略）
+
+---
+
+##### 4) 一句话总结（回答面试/业务复盘都好用）
+
+> 封号后，媒体侧的“学习”基本无法搬家；但 AppsFlyer 把归因数据、事件口径和高价值人群沉淀在广告主侧，让你可以快速在新账号恢复同口径的 Postback 信号，并用人群包作为种子受众，把冷启动从“完全随机探索”变成“带先验的快速收敛”。
+
+---
+
+#### 广告主开发者需要做哪些事？
+
+使用 AppsFlyer 涉及两类人：**投放运营**（配置后台）和**开发者**（集成代码）。以下聚焦开发者职责：
+
+**一次性工作（App 上线前）**
+
+| 任务 | 说明 | 难度 |
+|------|------|------|
+| **集成 AppsFlyer SDK** | iOS/Android 各自接入，约 1-2 天工作量 | ⭐⭐ |
+| **初始化 SDK** | 设置 Dev Key、App ID，启动 SDK | ⭐ |
+| **上报标准事件** | 在注册/付费/关键行为节点调用 `logEvent()` | ⭐⭐ |
+| **处理 Deep Link** | 配置 OneLink，处理广告落地页跳转到 App 内指定页面 | ⭐⭐⭐ |
+| **iOS ATT 弹窗** | 在合适时机请求 ATT 权限，影响 IDFA 获取率 | ⭐⭐ |
+| **测试归因** | 用 AppsFlyer 测试设备验证安装归因是否正常 | ⭐ |
+
+**封号后切换账号时（开发者几乎不需要动）**
+
+这是 AppsFlyer 的核心优势之一：**封号换账号，开发者不需要改代码**。
+
+```
+封号前：SDK 上报 → AppsFlyer → Postback 到 Meta 账号 A
+封号后：SDK 上报 → AppsFlyer → Postback 到 Meta 账号 B（只需运营在后台改配置）
+```
+
+开发者唯一可能需要做的：如果新账号使用了不同的 Deep Link 落地页，需要更新 OneLink 配置。
+
+**需要服务端配合的场景（S2S 事件）**
+
+如果付费事件发生在服务端（如虚拟货币充值、订阅续费），需要后端开发者额外接入 **S2S Events API**：
+
+```bash
+POST https://api2.appsflyer.com/inappevent/{app-id}
+Authorization: {dev-key}
+Content-Type: application/json
+
+{
+  "appsflyer_id": "1234567890123-1234567",   ← SDK 生成的设备唯一 ID
+  "eventName": "af_purchase",
+  "eventValue": "{\"af_revenue\":9.99,\"af_currency\":\"USD\"}",
+  "eventTime": "2024-02-19 10:30:00.000"
+}
+```
+
+> 为什么需要 S2S？客户端 SDK 上报的付费事件可能被刷单（假充值），服务端验证后再上报更可靠，也是 Meta/Google 算法优化的更高质量信号。
+
 ### 5.2 前期准备
 
 #### Step 1：集成 AppsFlyer SDK
@@ -547,29 +720,235 @@ AppsFlyer 归因决策：
   - 这就是为什么需要 MMP 做去重归因
 ```
 
-### 5.5 Postback 回传机制
+### 5.5 Postback 回传机制与数据颗粒度
 
-AppsFlyer 归因完成后，会向对应媒体发送 **Postback**（转化回传），用于媒体的算法优化：
+AppsFlyer 归因完成后，会向对应媒体发送 **Postback**（转化回传），用于媒体算法优化。**这是整个链路中最关键的环节之一**，颗粒度直接决定媒体算法能优化到什么程度。
+
+#### Postback 的数据颗粒度
+
+Postback 是**设备级（Device-level）**的，即每一个归因事件都单独回传一条记录，而不是聚合后的汇总数据。
 
 ```
-AppsFlyer → Meta Postback:
-POST https://www.facebook.com/tr/
+用户 A 安装 → AppsFlyer 归因到 Meta → 立即发送 1 条 Postback 给 Meta
+用户 B 安装 → AppsFlyer 归因到 Google → 立即发送 1 条 Postback 给 Google
+用户 A 付费 → AppsFlyer 记录事件 → 发送 1 条付费 Postback 给 Meta
+```
+
+**Meta Postback 示例（设备级，含设备标识）**：
+
+```http
+POST https://graph.facebook.com/v17.0/{pixel_id}/events
+Content-Type: application/json
+
 {
-  "event_name": "MOBILE_APP_INSTALL",
-  "advertiser_tracking_enabled": 1,
-  "application_tracking_enabled": 1,
-  "extinfo": ["i2", ...],
-  "custom_events": [
-    {"_eventName": "af_purchase", "_valueToSum": 9.99, "fb_currency": "USD"}
-  ]
+  "data": [{
+    "event_name": "Purchase",
+    "event_time": 1708300800,
+    "event_id": "af_event_abc123",
+    "user_data": {
+      "madid": "GAID_or_IDFA_here",      ← 设备广告标识符（IDFA/GAID）
+      "client_ip_address": "1.2.3.4",
+      "client_user_agent": "Mozilla/5.0..."
+    },
+    "custom_data": {
+      "currency": "USD",
+      "value": 9.99,                      ← 付费金额
+      "content_ids": ["item_001"]
+    },
+    "app_data": {
+      "advertiser_tracking_enabled": 1,
+      "application_tracking_enabled": 1,
+      "campaign_ids": "23847382910"       ← Meta 广告系列 ID
+    }
+  }],
+  "access_token": "..."
 }
-
-AppsFlyer → Google Postback:
-通过 Google Ads API 回传转化数据，
-Google 用此数据优化 UAC (Universal App Campaign) 的出价和定向。
 ```
 
-### 5.6 日常运营看板
+**Google Ads Postback 示例（通过 Google Ads API 回传）**：
+
+```
+AppsFlyer → Google Ads Conversion API:
+- gclid: "Cj0KCQiA..."         ← Google Click ID（点击时生成，标识具体广告点击）
+- conversion_action: "purchase"
+- conversion_value: 9.99
+- conversion_currency: "USD"
+- conversion_date_time: "2024-02-19 10:30:00+00:00"
+```
+
+#### Postback 颗粒度对媒体算法的影响
+
+| 回传内容 | 媒体能做什么 |
+|---------|------------|
+| **设备 ID (IDFA/GAID)** | 精准匹配到具体广告展示/点击记录，确认归因 |
+| **事件类型（安装/注册/付费）** | 区分不同转化目标，分别优化 |
+| **事件价值（付费金额）** | 优化 ROAS 出价（Value-based Bidding） |
+| **事件时间戳** | 计算归因窗口内的转化，排除窗口外的 |
+| **Campaign/AdSet ID** | 定位到具体广告组，精准调整出价 |
+
+> **关键点**：Meta 的 Advantage+ 和 Google 的 Smart Bidding 都依赖这些设备级 Postback 来训练模型。如果只回传聚合数据（如"今天共 100 个安装"），算法无法知道哪条具体广告有效，优化效果会大幅下降。
+
+#### iOS ATT 对 Postback 颗粒度的影响
+
+iOS 14.5+ 后，用户可拒绝追踪（ATT），导致 IDFA 不可用：
+
+| 用户状态 | Postback 颗粒度 |
+|---------|----------------|
+| **用户同意 ATT** | 完整设备级 Postback，含 IDFA |
+| **用户拒绝 ATT** | 通过 SKAdNetwork 回传，**聚合级**，无设备 ID，有延迟（24-48h），有转化值上限 |
+| **Android 用户** | GAID 默认可用（除非用户手动关闭），设备级 Postback 正常 |
+
+---
+
+### 5.6 AppsFlyer 中能看到什么数据？明细 vs 聚合
+
+这是一个非常重要的问题：**接入 SDK 后，你能在 AppsFlyer 看到/拉取到的数据是什么粒度的？**
+
+#### 结论：两种数据都有，但访问方式不同
+
+| 数据类型 | 粒度 | 访问方式 | 包含设备号？ |
+|---------|------|---------|------------|
+| **聚合报表** | 渠道/日期/地区维度汇总 | Dashboard + Aggregate Pull API | ❌ 无设备 ID |
+| **原始数据（Raw Data）** | 每条安装/事件一行记录 | Raw Data Pull API / Push API / Data Locker | ✅ 含设备 ID |
+
+#### 聚合数据（你在 Dashboard 看到的）
+
+Dashboard 默认展示的是**聚合维度**的数据，例如：
+
+```
+渠道: Meta Ads
+日期: 2024-02-19
+安装数: 5,000
+注册数: 3,500
+付费用户: 250
+收入: $2,490
+CPI: $2.50
+ROAS: 320%
+```
+
+这是按 Campaign → AdSet → Creative 层级聚合的，**看不到单个用户/设备的信息**。
+
+#### 原始明细数据（Raw Data）
+
+通过 **Raw Data Pull API** 或 **Push API** 可以拉取每一条安装/事件的明细记录：
+
+```csv
+install_time,         media_source, campaign,          adset,        advertising_id,              idfa,                                device_model, country, event_name,  revenue
+2024-02-19 10:23:11, Meta Ads,     Game_iOS_US_Feb,   Lookalike_1,  ,                            A1B2C3D4-E5F6-...(IDFA),             iPhone 15,    US,      install,     0
+2024-02-19 10:45:33, Meta Ads,     Game_iOS_US_Feb,   Lookalike_1,  ,                            A1B2C3D4-E5F6-...(IDFA),             iPhone 15,    US,      af_purchase, 9.99
+2024-02-19 11:02:44, Google Ads,   UAC_Android_US,    ,             38f7a2b1-...(GAID),           ,                                    Pixel 8,      US,      install,     0
+```
+
+**每一行就是一个设备的一个事件**，包含：
+- `advertising_id`：Android 设备的 GAID（Google Advertising ID）
+- `idfa`：iOS 设备的 IDFA（需用户同意 ATT）
+- `install_time`、`event_name`、`revenue` 等完整字段
+
+#### 设备号粒度数据的访问权限
+
+| 数据 | 谁能看 | 限制 |
+|------|--------|------|
+| **广告主自己的 Raw Data** | ✅ 广告主完全可以拉取 | 通过 Raw Data Pull API，需要 API Token |
+| **媒体（Meta/Google）能看到的** | ❌ 媒体看不到 AppsFlyer 的原始数据 | 媒体只收到 Postback，不能访问 AppsFlyer 后台 |
+| **iOS 拒绝 ATT 的用户** | ⚠️ IDFA 字段为空 | 只有 SKAdNetwork 聚合数据 |
+| **Android 用户** | ✅ GAID 通常可用 | 用户可手动关闭 |
+
+#### 你的理解是否正确？
+
+> "看上去只需要用户在 App 上接入 SDK，然后就可以从 AppsFlyer 看完整数据了"
+
+**基本正确，但有几点补充**：
+
+1. ✅ **接入 SDK 是核心**：SDK 负责收集设备信息、发送安装/事件回调给 AppsFlyer 服务器
+2. ✅ **可以看到完整数据**：包括聚合报表和设备级原始数据（Raw Data）
+3. ⚠️ **还需要配置媒体集成**：在 AppsFlyer 后台配置 Meta/Google 的对接，才能让 AppsFlyer 知道点击来自哪个广告，完成归因
+4. ⚠️ **iOS 有 ATT 限制**：拒绝追踪的用户，IDFA 为空，归因走 SKAdNetwork（聚合，无设备 ID）
+5. ✅ **Raw Data 有设备号粒度**：通过 API 可以拉取每个设备的安装/事件明细，含 IDFA/GAID
+
+---
+
+### 5.7 场景扩展：产品不做 App，只做 PWA（且 Meta 账号不绑定 App）怎么办？
+
+你补充的限制是：**我们的 Meta 投放账号中暂时不添加绑定 App**。这会直接改变链路中“归因与优化信号”的核心载体：
+
+- 在 **App 场景**，媒体优化主要吃的是 App Install / App Event 信号（通过 MMP SDK + Postback）。
+- 在 **PWA 场景**（且 Meta 账号不绑定 App），媒体优化只能吃 **Web 信号**（Pixel + Conversions API 等）。
+
+因此结论变化如下：
+
+| 目标 | 是否还能复用“上一个账号积累的数据” | 复用方式 |
+|------|-------------------------------|---------|
+| **复用用户资产（种子受众）** | ✅ 仍然可以 | Customer List / Custom Audience / Lookalike（来自你自己的用户库或历史网站用户） |
+| **复用 AppsFlyer 的 App 归因资产** | ⚠️ 基本不适用 | 没有 App/SDK 就没有标准 App 归因与设备级安装链路 |
+| **复用优化信号（让算法快速收敛）** | ✅ 仍然可以，但载体变了 | 从“AppsFlyer Postback”切换为“Pixel + CAPI（服务端回传）” |
+| **复用媒体侧 learning 状态** | ❌ 仍然不行 | 新账号仍会重新 Learning |
+
+#### 文档依据：为什么“只做 PWA + Meta 不绑定 App”会削弱 AppsFlyer 作为 App MMP 的杠杆？
+
+这个判断来自 AppsFlyer 官方文档对“App 集成”和“Web 集成”的明确分层：
+
+- **Meta Ads（App）集成是以 App 为核心前提**：需要在 AppsFlyer 集成流程中配置 App 相关信息（如 Meta 的 App ID、事件映射等）。
+  - https://support.appsflyer.com/hc/en-us/articles/207033826-Meta-ads-integration-setup
+
+- **Web 场景在 AppsFlyer 里属于 PBA（People-Based Attribution）体系**：通过 Web SDK 记录 web visits/web events，并可用 Web-S2S 补全服务端事件。
+  - https://support.appsflyer.com/hc/en-us/articles/360001610038-PBA-Web-SDK-integration-guide
+  - https://support.appsflyer.com/hc/en-us/articles/360006997298-Web-Server-to-server-events-API-for-PBA-Web-S2S
+
+- **AppsFlyer 的 API Reference 也把 Web 与 App 分为不同类目**（例如 Web Server-TO-Server API 与 Mobile S2S 分开列出）。
+  - https://dev.appsflyer.com/hc/reference/api-reference-overview
+
+因此，当你的产品只有 PWA 且 Meta 账号不绑定 App 时，业务会自然从“App MMP（SDK+install+in-app events+postback）”迁移到“Web 信号（Pixel/CAPI + Web 事件）”，AppsFlyer 的价值更多体现为 Web/PBA 或数据方法论，而不是经典 App MMP 主链路。
+
+#### 在该限制下，最推荐的落地方案（Meta）
+
+如果不能绑定 App，你要把“冷启动加速”寄托在两件事上：**人群复用** + **高质量 Web 转化回传**。
+
+**1) 人群复用（最能跨账号迁移的资产）**
+
+- 从你自己的用户库构建：注册用户、付费用户、高 LTV 用户
+- 上传到新账号：
+  - Custom Audience（自定义受众）
+  - Lookalike Audience（相似受众）
+
+**2) Web 转化回传（让新账号尽快积累“可学习样本”）**
+
+- 在 PWA 中埋点 **Meta Pixel**（浏览器端）
+- 同时接入 **Meta Conversions API (CAPI)**（服务端）做“同口径双写/去重”
+  - Browser Pixel 用于覆盖面
+  - Server CAPI 用于稳定性与抗丢（尤其是 Safari/隐私限制下）
+
+建议回传事件层级：
+
+| 阶段 | 优先事件 | 说明 |
+|------|----------|------|
+| 冷启动前期 | `Lead` / `CompleteRegistration` | 量大，便于先把模型跑通 |
+| 稳定后 | `Purchase` + `value` | 做价值优化（ROAS/Value） |
+
+关键工程要点：
+
+- **事件去重**：Pixel 与 CAPI 必须使用同一个 `event_id` 做 dedup，否则会重复记账影响优化
+- **身份匹配**：尽可能提供可匹配字段（如 email/phone hash、ip、ua），提升归因匹配率
+- **口径稳定**：事件命名、币种、金额字段保持一致，封号切换账号后才能“快速恢复同口径信号”
+
+> 在这个限制下，AppsFlyer 的价值主要从“移动端 MMP 归因”转为“数据方法论参考”。真正的执行系统会变成 Pixel/CAPI + 自己的数据仓库。
+
+#### 如果你希望“像 App 一样”做归因：PWA → TWA（Android APK）备选
+
+如果后续业务允许，你可以把 PWA 用 **TWA/Bubblewrap** 打包为 Android APK：
+
+- 这时你就“有 App 了”，可接入 AppsFlyer Android SDK
+- 可以拿到更像 App 的归因/事件明细（GAID 等），以及更完整的 MMP 能力
+- 但注意：你当前的限制（Meta 账号不绑定 App）仍然意味着 **Meta 侧还是主要吃 Web 信号**，除非限制解除
+
+#### Google 侧（PWA）
+
+Google 对 Web 的优化链路更成熟：
+
+- 用 gtag/GA4 记录 Web 转化
+- 通过 Google Ads 的 Web 转化/增强型转化/离线转化导入（按你的链路选择）回传
+- 同样用“人群 + 稳定转化信号”缩短新账号学习时间
+
+### 5.8 日常运营看板
 
 投放经理每天在 AppsFlyer Dashboard 查看：
 
@@ -722,16 +1101,119 @@ AppsFlyer 提供丰富的 API，按功能分类：
 
 ### 9.2 AppsFlyer 官方 MCP Server
 
-AppsFlyer 提供了**官方 MCP Server**，支持远程连接：
+AppsFlyer 提供了**官方 MCP Server**（目前为 Closed Beta），支持远程连接：
 
 | 属性 | 值 |
 |------|-----|
 | **名称** | `com.appsflyer/mcp` |
 | **远程 URL** | `https://mcp.appsflyer.com` |
-| **认证方式** | OAuth |
+| **认证方式** | OAuth（连接时自动发起 OAuth 授权流程，无需手动配置 API Key） |
 | **传输协议** | Streamable HTTP |
-| **费用** | Free Tier 可用 |
+| **费用** | Free Tier (Zero Plan) 可用 |
 | **产品页面** | [appsflyer.com/products/mcp](https://www.appsflyer.com/products/mcp/) |
+| **官方文档** | [AppsFlyer MCP Help Center](https://support.appsflyer.com/hc/en-us/articles/36349070304785) |
+
+#### 在 Windsurf 中配置 AppsFlyer 官方 MCP
+
+> **注意**：AppsFlyer 官方 MCP 目前处于 **Closed Beta** 阶段，Windsurf 内置 Marketplace 中可能尚未上线。推荐使用手动配置方式。
+
+**手动配置步骤（当前最可靠方式）**
+
+**第一步：打开 mcp_config.json**
+
+在 Windsurf 中按 `Cmd+Shift+P`（Mac）→ 搜索 `Open MCP Config` → 回车，打开配置文件。
+
+或直接在终端编辑：
+
+```bash
+open ~/.codeium/windsurf/mcp_config.json
+```
+
+**第二步：添加 AppsFlyer 配置**
+
+```json
+{
+  "mcpServers": {
+    "appsflyer": {
+      "serverUrl": "https://mcp.appsflyer.com/mcp"
+    }
+  }
+}
+```
+
+> 如果文件已有其他 MCP 配置，在 `mcpServers` 对象里追加 `"appsflyer": {...}` 这一项即可，注意 JSON 逗号分隔。
+
+**第三步：保存并重启 Cascade**
+
+保存文件后，在 Cascade 面板点击 **Refresh** 或重启 Windsurf，AppsFlyer MCP 会出现在工具列表中。
+
+**第四步：OAuth 授权（首次使用时）**
+
+当 Cascade 第一次调用 AppsFlyer 工具时，会自动弹出浏览器跳转到 AppsFlyer 登录页。用你的 AppsFlyer 账号登录并点击授权，之后 Windsurf 自动保存 Token，后续无需重复操作。
+
+---
+
+**备选：如果已有 AppsFlyer API V2 Token（跳过 OAuth）**
+
+在 AppsFlyer 后台 → **Account Settings** → **API Tokens** 获取 V2 Token，然后配置：
+
+```json
+{
+  "mcpServers": {
+    "appsflyer": {
+      "serverUrl": "https://mcp.appsflyer.com/mcp",
+      "headers": {
+        "Authorization": "Bearer ${env:APPSFLYER_TOKEN}"
+      }
+    }
+  }
+}
+```
+
+在 `~/.zshrc`（或 `~/.bash_profile`）中添加：
+
+```bash
+export APPSFLYER_TOKEN="your_appsflyer_api_v2_token"
+```
+
+然后 `source ~/.zshrc` 使其生效。
+
+---
+
+#### 个人开发者注册账号使用 MCP
+
+**核心结论：MCP 的 OAuth 就是登录你自己的 AppsFlyer 账号，不是注册独立 OAuth App。**
+
+你需要先有一个 AppsFlyer 账号，才能完成 OAuth 授权。
+
+**注册方式：AppsFlyer Zero Plan（免费）**
+
+| 属性 | 说明 |
+|------|------|
+| **费用** | $0 |
+| **归因额度** | 每月最多 12,000 次归因 |
+| **注册要求** | 填写邮箱即可注册，App 可以后续再添加（不强制要求已上架） |
+| **注册地址** | [appsflyer.com/sign-up](https://www.appsflyer.com/sign-up/) |
+
+注册后你会得到一个 AppsFlyer 账号，可以：
+- 在 Dashboard 里添加一个 App（哪怕是测试 App）
+- 获取 Dev Key 和 API Token
+- 完成 MCP OAuth 授权
+
+**个人开发者的实际场景分析**
+
+| 目标 | 是否需要 MCP | 建议 |
+|------|------------|------|
+| **学习 AppsFlyer 文档和 API** | ❌ 不需要 | 文档完全公开，直接访问 [dev.appsflyer.com](https://dev.appsflyer.com/) |
+| **有自己的 App，想接入归因** | ✅ 有价值 | 注册 Zero Plan，接入 SDK，MCP 可查询自己的数据 |
+| **研究 MCP 技术本身** | ⚠️ 可用社区版 | 用 [github.com/ysntony/appsflyer-mcp](https://github.com/ysntony/appsflyer-mcp) + 自己的 API Token，无需 OAuth |
+| **没有 App，纯学习研究** | ❌ 意义不大 | MCP 返回的是你账号下的数据，没有投放数据时返回空 |
+
+**💡 当前阶段建议（个人开发者无 App）：**
+
+1. **学习文档**：直接读 [dev.appsflyer.com](https://dev.appsflyer.com/) 和 [support.appsflyer.com](https://support.appsflyer.com/)，无需账号
+2. **体验 MCP**：注册免费账号 → 用社区版 MCP（API Token 方式，比 OAuth 更简单）
+3. **有 App 后**：接入 SDK → 产生真实数据 → 官方 MCP 才真正有价值
 
 ### 9.3 社区版 MCP Server（开源）
 
