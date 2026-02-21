@@ -109,6 +109,9 @@ nav:
     - 国内平台: 08-players/china.md
   - 常见DSP:
     - meta: 10-some-dsp/meta.md
+  - 广告黑产与反作弊:
+    - 黑产概览: 11-ad-fraud/overview.md
+    - 防守方落地清单: 11-ad-fraud/defense.md
   - 前沿趋势:
     - 行业趋势: 09-trends/trends.md
   - 面试 Q&A:

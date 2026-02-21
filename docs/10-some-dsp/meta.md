@@ -100,6 +100,160 @@ BM
   - **匹配率**：尽可能提供 email/phone hash、ip、ua 等，提升匹配
   - **口径稳定**：事件命名/币种/金额字段要长期一致，便于跨账号迁移
 
+### 3.5 人群包“实战打法”：从 0 到 1 搭一个可迁移的受众矩阵
+
+下面给你一套可以直接照搬的“受众矩阵”，目标是：
+
+- **冷启动**：让新账号在 48-72 小时内进入可优化状态
+- **可迁移**：即使换广告账号，仍能复用“人群资产 + 信号工程”
+
+#### 3.5.1 受众矩阵（Audience Matrix）
+
+| 层 | 受众类型 | 例子 | 主要作用 | 是否容易跨账号复用 |
+|---|----------|------|----------|------------------|
+| L0 | 广泛/兴趣 | Broad、兴趣包 | 拉量、探索 | ⚠️ 受账号学习影响较大 |
+| L1 | Website Custom Audience | 7D/14D 访问者、加购者 | 召回、稳定转化 | ✅（依赖像素/域名） |
+| L2 | Customer List Custom Audience | 注册用户、付费用户 | 高质量种子、召回 | ✅（最可迁移） |
+| L3 | Lookalike（基于 L2/L1） | 1%/2%/5% | 冷启动获客加速 | ✅（推荐核心打法） |
+| L4 | Value-based Lookalike（可选） | 用付费金额/分层做种子 | 提升 ROAS | ⚠️ 对数据质量要求更高 |
+
+> **核心原则**：你的“可迁移资产”优先级是：Customer List > Website 行为 > 兴趣/广泛。
+
+#### 3.5.2 Lookalike 分层（Layering）建议
+
+常见的分层方式：
+
+- **按相似度**：`1%`（最像）→ `2%` → `5%`（更广）
+- **按种子质量**：`Payers_30D`（付费）> `Registrations_30D`（注册）> `Visitors_30D`（访问）
+- **按地域**：每个国家单独建一套（不要把多国家混一个 LAL，除非你明确要 multi-country）
+
+冷启动推荐组合（优先级从高到低）：
+
+1. `LAL_1%_Payers_30D`
+2. `LAL_1%_Registrations_30D`
+3. `LAL_2%_Payers_30D`
+4. `Broad`（兜底拉量）
+
+#### 3.5.3 Exclusion（排除）是“省钱”的核心手段
+
+为了减少浪费、加速学习，你应该系统性做排除：
+
+- 排除已付费用户（做拉新时）
+- 排除近 7D 已注册用户（避免重复买量）
+- 排除近 7D 已触达高频人群（防止频控导致质量下滑）
+
+#### 3.5.4 事件体系（Signal Engineering）：先跑通，再升级
+
+冷启动阶段要避免一上来就优化“稀疏事件”（比如付费量太小）。建议按阶段升级：
+
+| 阶段 | 优先优化事件 | 目标 | 备注 |
+|------|--------------|------|------|
+| Phase 1 | `Lead`/`CompleteRegistration` | 先有量，先让模型学起来 | 事件必须稳定且可复现 |
+| Phase 2 | `Purchase` | 拿到真实付费优化 | 量不足容易 Learning Limited |
+| Phase 3 | `Purchase` + `value` | ROAS/价值优化 | 强依赖金额字段质量 |
+
+> 如果你是 PWA：请优先把 **Pixel + CAPI** 的事件做“稳定、可去重、可匹配”，再谈人群与优化。
+
+#### 3.5.5 Customer List 的“最小工程实现”建议
+
+你要自动化上传 Customer List（而不是手动上传）时，建议做到：
+
+- **数据规范**：email/phone 做归一化（trim/lowercase/去空格/去符号）
+- **Hash**：按 Meta 要求做 SHA256（或让平台自动 hash，但要确认一致性）
+- **增量更新**：每天一次通常足够；高频更新对学习收益不一定线性
+- **口径稳定**：`Payers_30D`、`High_LTV_180D` 这些人群定义不要频繁变
+
+### 3.6 跨账号复用：把“冷启动资产”拆成可迁移与不可迁移
+
+| 资产 | 是否能迁移 | 迁移方式 | 关键注意 |
+|------|-----------|---------|----------|
+| Customer List / Lookalike | ✅ | 重新在新账号创建/引用 | 种子数据一致性 + 合规 |
+| Website 行为人群 | ⚠️ | 取决于 Pixel/域名是否同一主体可用 | 像素/域名资产是否被连坐 |
+| 媒体学习状态 | ❌ | 无法搬家 | 新账号仍需积累样本 |
+
+> 你真正能做的是：让新账号从第一天就吃到“更好的受众 + 更好的事件信号”，从而更快过冷启动。
+
+---
+
+## 三点五、个人开发者最小可行实践（国内主体、无外贸经营范围也能先跑通）
+
+你当前的约束可以理解为：
+
+- 以**个人/小团队**为主
+- 主体在国内，可能没有海外主体、也没有“外贸”经营范围
+- 目标不是一步到位大规模投放，而是先把“Pixel/CAPI → 事件 → 受众 → Lookalike → 冷启动”跑通
+
+下面是一个**可落地的最小闭环（MVP）**，按“先跑通，再增强”的思路设计。
+
+### 3.5.1 你需要准备的最小资产清单
+
+| 资产 | 最小要求 | 备注 |
+|------|----------|------|
+| Website/PWA | 有域名 + 可部署 JS + 有转化页面 | 最好有明确的注册/下单完成页 |
+| BM（Business Manager） | 一个 BM | 建议不要把高风险测试和主业务混在一个 BM |
+| Ad Account | 1 个广告账号 | 冷启动建议从小预算开始 |
+| Pixel | 1 个 Pixel | Web 事件采集核心 |
+| CAPI 回传服务 | 1 个简单服务端接口 | 先实现 1-2 个事件就够 |
+| 数据源（用户列表） | 可选：email/phone | 没有也能先用 Website 受众起步 |
+
+### 3.5.2 第一步：先做 Pixel（浏览器端）把“信号”打出来
+
+最低限度先打 3 个事件：
+
+- `PageView`
+- `Lead` 或 `CompleteRegistration`
+- `Purchase`（如果你有支付）
+
+原则：事件必须“稳定可复现”。哪怕量小，也要先保证每次都能打到。
+
+### 3.5.3 第二步：再做 CAPI（服务端）把丢失的信号补回来
+
+个人开发者最推荐的做法是：
+
+- **先只做 1 个关键事件的 CAPI**（例如 `CompleteRegistration` 或 `Purchase`）
+- Browser Pixel 继续打（覆盖面）
+- 服务端 CAPI 做补齐（稳定性）
+- 统一 `event_id` 去重
+
+你会在 Events Manager 里看到事件是否正常、以及去重是否生效。
+
+### 3.5.4 第三步：不碰 API 也能先跑的人群方案（避开 App Review 的复杂度）
+
+如果你还没准备好走 Marketing API（Developer App 权限/审核/Token 等），先用“纯 UI 能完成”的路径：
+
+1. **Website Custom Audience**：7D/14D/30D 访问、注册、加购等
+2. **Lookalike（基于 Website 受众）**：先做 1% 作为冷启动主力
+
+这条路径的优点是：不依赖你去维护 Developer App 和 token 链路。
+
+### 3.5.5 第四步：如果你有用户列表，再上 Customer List（可迁移资产）
+
+当你有 email/phone（且有合规授权）后再升级：
+
+- 先用 Ads Manager 手动上传 Customer List（先跑通）
+- 需求稳定后，再考虑 Marketing API 自动化增量更新
+
+### 3.5.6 冷启动的“最小投放”模板（适合个人开发者）
+
+目标：用最少的钱，尽快拿到足够多的“可学习事件”。
+
+1. 受众：`LAL_1%_Registrations_30D`（或基于 Website 事件的 1%）
+2. 优化目标：先 `Lead/CompleteRegistration`
+3. 预算：小步快跑，先稳定 48 小时再调整
+4. 事件质量：优先保证去重与匹配字段（email/phone hash、ip、ua）
+
+### 3.5.7 你最可能卡住的点（个人开发者高频）
+
+| 卡点 | 现象 | 应对 |
+|------|------|------|
+| 业务验证/主体可信度 | 受众/权限受限、审核更严 | 先走 UI 路径 + 小额合规投放，逐步建立历史 |
+| 域名/落地页合规 | 广告频繁被拒登 | 落地页内容与广告一致，避免强跳转/cloaking |
+| 事件丢失 | Pixel 事件少、归因差 | 上 CAPI + 做好 `event_id` 去重 |
+| 事件稀疏 | 优化 Purchase 学不动 | 先优化注册/线索，等量起来再切付费 |
+| 没有用户列表 | 无法做 Customer List | 先用 Website Custom Audience + Lookalike 起量 |
+
+> 实操上，你不需要一开始就“全套都做”。最小闭环就是：Pixel 打通 + 1 个关键事件 CAPI + Website 受众 + Lookalike 1%。
+
 ---
 
 ## 四、封禁后“最快恢复投放”的操作清单（可直接执行）
@@ -177,6 +331,13 @@ BM
 - Engagement Custom Audiences（互动人群）
   - https://developers.facebook.com/docs/marketing-api/audiences/guides/engagement-custom-audiences/
 
+### 5.6.1 Lookalike Audiences（相似受众）
+
+- About Lookalike Audiences
+  - https://www.facebook.com/business/help/164749007013531
+- Create a Lookalike Audience
+  - https://www.facebook.com/business/help/465262276878947
+
 ### 5.7 Custom Audiences（业务侧帮助文档：上传、人群格式、hash）
 
 - About Hashing Customer Information
@@ -198,3 +359,20 @@ BM
   - https://developers.facebook.com/docs/marketing-api/guides/smb/system-user-access-token-handling/
 - System Users（对象与权限概念）
   - https://developers.facebook.com/docs/marketing-api/system-users/
+
+### 5.9 Custom Conversions / Offline Conversions / AEM
+
+- About custom conversions for web
+  - https://www.facebook.com/business/help/780705975381000
+- Custom Conversion（API reference）
+  - https://developers.facebook.com/docs/marketing-api/reference/custom-conversion/
+- Offline Conversions API
+  - https://developers.facebook.com/docs/marketing-api/offline-conversions/
+- About Meta's Aggregated Event Measurement
+  - https://www.facebook.com/business/help/721422165168355
+- Aggregated Event Measurement（App Events guide）
+  - https://developers.facebook.com/docs/app-events/guides/aggregated-event-measurement/
+- Lookalike Audiences（API reference）
+  - https://developers.facebook.com/docs/marketing-api/reference/lookalike-audience/
+- Create a Lookalike Audience（API reference）
+  - https://developers.facebook.com/docs/marketing-api/reference/audiences/create/
